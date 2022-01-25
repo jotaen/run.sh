@@ -1,0 +1,162 @@
+#!/bin/bash
+
+# Setup configuration and globals.
+RUN_FILE='./run.sh'
+IS_VERBOSE='false'
+COMMAND=()
+
+cmd_help() {
+	cat << EOF
+Interact with tasks from a run.sh file.
+
+Usage: run [OPTION] TASK [INPUT...]
+
+Options:
+	-h, --help       Print this help
+	-l, --list       List all available tasks
+	-i, --info task  Show task description
+	-v, --verbose    Print task command before executing
+	-f, --file       Specify the task file (default: ./run.sh)
+EOF
+}
+
+cmd_list() {
+	TITLE_CANDIDATE=""
+	TASKS=()
+	TITLES=()
+	LONGEST_TASK_NAME=0 # Used for aligning the output.
+
+	while IFS= read -r line; do
+		if [[ -z "${TITLE_CANDIDATE}" && "${line}" == "# "* ]]; then
+			TITLE_CANDIDATE="${line:2}"
+			continue
+		fi
+		if [[ "${line}" == "run_"* ]]; then
+			TASK=$(echo "${line}" | sed -n "s/^run_\([a-zA-Z0-9_]*\).*$/\1/p")
+			TASKS+=("${TASK}")
+			TITLES+=("${TITLE_CANDIDATE}")
+			if [[ ${#TASK} -gt $LONGEST_TASK_NAME ]]; then
+				LONGEST_TASK_NAME=${#TASK}
+			fi
+			TITLE_CANDIDATE=""
+		fi
+	done < "${RUN_FILE}"
+
+	for (( i=0; i<${#TASKS[@]}; i++ ));
+	do
+	  printf "%-${LONGEST_TASK_NAME}s   %s\n" "${TASKS[$i]}" "${TITLES[$i]}"
+	done
+}
+
+cmd_info() {
+	REQUESTED_TASK="$1"
+	INFO_CANDIDATE=()
+
+	while IFS= read -r line; do
+		if [[ "${line}" == "# "* ]]; then
+			INFO_CANDIDATE+=("${line:2}")
+			continue
+		fi
+		TASK=$(echo "${line}" | sed -n "s/^run_\([a-zA-Z0-9_]*\).*$/\1/p")
+		if [[ "${TASK}" == "${REQUESTED_TASK}" ]]; then
+			for i in "${INFO_CANDIDATE[@]}"; do
+			  echo "${i}"
+			done
+			exit
+		fi
+		INFO_CANDIDATE=()
+	done < "${RUN_FILE}"
+	echo "No such task: ${REQUESTED_TASK}"
+	exit 1
+}
+
+cmd_execute() {
+	readonly TASK_NAME="$1"
+	readonly TASK_INPUT=( "${@:2}" )
+
+	# Load “run” file with task definitions.
+	# shellcheck source=./run.sh
+	source "${RUN_FILE}"
+
+	# Check that subcommand is defined.
+	readonly TYPE=$(type -t "${TASK_NAME}")
+	if [[ "${TYPE}" != 'function' ]]; then
+		echo 'No task specified' >&2
+		exit 1
+	fi
+
+	# Activate verbose mode (if requested).
+	if "${IS_VERBOSE}"; then
+		set -o xtrace
+	fi
+
+	# Invoke subcommand and pass all additional arguments.
+	"${TASK_NAME}" "${TASK_INPUT[@]}"
+}
+
+# Parse CLI arguments.
+if [[ $# -eq 0 ]]; then
+	cmd_help
+	exit
+fi
+while [[ $# -gt 0 ]]; do
+	case $1 in
+		--help|-h)
+			cmd_help
+			exit
+			;;
+		--list|-l)
+			COMMAND=( cmd_list )
+			shift
+			continue
+			;;
+		--info=*|-i=*)
+			COMMAND=( cmd_info "${1#*=}" )
+			shift
+			continue
+			;;
+		--info|-i)
+			COMMAND=( cmd_info "$2" )
+			shift
+			shift
+			continue
+			;;
+		--file=*|-f=*)
+			RUN_FILE="${1#*=}"
+			shift
+			continue
+			;;
+		--file|-f)
+			RUN_FILE="$2"
+			shift
+			shift
+			continue
+			;;
+		--verbose|-v)
+			IS_VERBOSE='true'
+			shift
+			continue
+			;;
+		-*)
+			echo "Unknown option $1"
+			exit 1
+			;;
+		*)
+			COMMAND=( cmd_execute "run_$1" "${@:2}" )
+			break
+			;;
+	esac
+done
+
+readonly RUN_FILE
+readonly IS_VERBOSE
+readonly COMMAND
+
+# If a run file is given, check that it exists.
+if [[ -n "${RUN_FILE}" && ! -f "${RUN_FILE}" ]]; then
+	echo "No such file: ${RUN_FILE}"
+	exit 2
+fi
+
+# Execute command.
+"${COMMAND[@]}"
