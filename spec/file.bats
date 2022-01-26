@@ -14,7 +14,7 @@ test_defaults_to_local_run_sh() { #@test
 
 	run main greet
 	[[ "${status}" -eq 0 ]]
-	[[ "${output}" = 'Hello, World!' ]]
+	[[ "${output}" == 'Hello, World!' ]]
 }
 
 test_set_specific_file() { #@test
@@ -23,22 +23,22 @@ test_set_specific_file() { #@test
 	# Long flag with equal sign
 	run main --file="${BATS_TEST_TMPDIR}/hello-world.sh" greet
 	[[ "${status}" -eq 0 ]]
-	[[ "${output}" = 'Hello, World!' ]]
+	[[ "${output}" == 'Hello, World!' ]]
 
 	# Long flag with space
 	run main --file "${BATS_TEST_TMPDIR}/hello-world.sh" greet
 	[[ "${status}" -eq 0 ]]
-	[[ "${output}" = 'Hello, World!' ]]
+	[[ "${output}" == 'Hello, World!' ]]
 
 	# Short flag with equal sign
 	run main -f="${BATS_TEST_TMPDIR}/hello-world.sh" greet everyone
 	[[ "${status}" -eq 0 ]]
-	[[ "${output}" = 'Hello, everyone!' ]]
+	[[ "${output}" == 'Hello, everyone!' ]]
 
 	# Short flag with space
 	run main -f "${BATS_TEST_TMPDIR}/hello-world.sh" greet everyone
 	[[ "${status}" -eq 0 ]]
-	[[ "${output}" = 'Hello, everyone!' ]]
+	[[ "${output}" == 'Hello, everyone!' ]]
 }
 
 test_specific_file_takes_precedence() { #@test
@@ -49,17 +49,17 @@ test_specific_file_takes_precedence() { #@test
 	# Short flag with space
 	run main -f "${BATS_TEST_TMPDIR}/hello-world.sh" greet
 	[[ "${status}" -eq 0 ]]
-	[[ "${output}" = 'Hello, World!' ]]
+	[[ "${output}" == 'Hello, World!' ]]
 }
 
 test_fails_if_no_such_run_file() { #@test
 	# With default run file
 	run main greet world
 	[[ "${status}" -eq 2 ]]
-	[[ "${output}" = 'No such file: ./run.sh' ]]
+	[[ "${output}" == 'No such file: ./run.sh' ]]
 
 	# With custom run file
 	run main -f=non-existing-file.sh greet world
 	[[ "${status}" -eq 2 ]]
-	[[ "${output}" = 'No such file: non-existing-file.sh' ]]
+	[[ "${output}" == 'No such file: non-existing-file.sh' ]]
 }

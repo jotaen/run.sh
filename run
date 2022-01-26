@@ -5,9 +5,9 @@ RUN_FILE='./run.sh'
 IS_VERBOSE='false'
 COMMAND=()
 
-COMMENT_PATTERN='^#{1,}[[:blank:]]*(.*)$'
-TASK_DEF_PATTERN_1='^[[:blank:]]*run_([a-zA-Z0-9_-]+)[[:blank:]]*\([[:blank:]]*\)'
-TASK_DEF_PATTERN_2='^[[:blank:]]*function[[:blank:]]*run_([a-zA-Z0-9_-]+)'
+COMMENT_PATTERN='^#{1,}[[:blank:]]?(.*)$'
+TASK_DEF_PATTERN_1='^[[:blank:]]*run_([a-zA-Z0-9_]+)[[:blank:]]*\([[:blank:]]*\)'
+TASK_DEF_PATTERN_2='^[[:blank:]]*function[[:blank:]]*run_([a-zA-Z0-9_]+)'
 
 cmd_help() {
 	echo 'Run tasks from a run.sh file.'
