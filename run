@@ -1,23 +1,30 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Setup configuration and globals.
 RUN_FILE='./run.sh'
 IS_VERBOSE='false'
 COMMAND=()
 
+COMMENT_PATTERN='^#{1,}[[:blank:]]*(.*)$'
+TASK_DEF_PATTERN_1='^[[:blank:]]*run_([a-zA-Z0-9_-]+)[[:blank:]]*\([[:blank:]]*\)'
+TASK_DEF_PATTERN_2='^[[:blank:]]*function[[:blank:]]*run_([a-zA-Z0-9_-]+)'
+
 cmd_help() {
-	cat << EOF
-Interact with tasks from a run.sh file.
+	echo 'Run tasks from a run.sh file.'
+	echo
+	echo 'Usage: run [OPTION] TASK [INPUT...]'
+	echo
+	echo 'Options:'
+	echo '  -f, --file       Specify the task file (default: ./run.sh)'
+	echo '  -h, --help       Print this help'
+	echo '  -i, --info task  Show task description'
+	echo '  -l, --list       List all available tasks'
+	echo '  -v, --verbose    Print task command before executing'
+	echo '      --version    Print version of this command'
+}
 
-Usage: run [OPTION] TASK [INPUT...]
-
-Options:
-	-h, --help       Print this help
-	-l, --list       List all available tasks
-	-i, --info task  Show task description
-	-v, --verbose    Print task command before executing
-	-f, --file       Specify the task file (default: ./run.sh)
-EOF
+cmd_version() {
+	echo 'Version 1.0-rc1'
 }
 
 cmd_list() {
@@ -27,24 +34,37 @@ cmd_list() {
 	LONGEST_TASK_NAME=0 # Used for aligning the output.
 
 	while IFS= read -r line; do
-		if [[ -z "${TITLE_CANDIDATE}" && "${line}" == "# "* ]]; then
-			TITLE_CANDIDATE="${line:2}"
+		# Process comment block.
+		if [[ "${line}" =~ $COMMENT_PATTERN ]]; then
+			if [[ -z "${TITLE_CANDIDATE}" ]]; then
+				COMMENT_TEXT="${BASH_REMATCH[1]}"
+				TITLE_CANDIDATE="${COMMENT_TEXT}"
+			fi
 			continue
 		fi
-		if [[ "${line}" == "run_"* ]]; then
-			TASK=$(echo "${line}" | sed -n "s/^run_\([a-zA-Z0-9_]*\).*$/\1/p")
+
+		# After a comment block, there must be the task definition.
+		# Allow both styles of command definition `run_foo() {...` and `function run_foo {`.
+		if [[ "${line}" =~ $TASK_DEF_PATTERN_1 || "${line}" =~ $TASK_DEF_PATTERN_2 ]]; then
+			TASK="${BASH_REMATCH[1]}"
 			TASKS+=("${TASK}")
 			TITLES+=("${TITLE_CANDIDATE}")
 			if [[ ${#TASK} -gt $LONGEST_TASK_NAME ]]; then
 				LONGEST_TASK_NAME=${#TASK}
 			fi
-			TITLE_CANDIDATE=""
 		fi
+
+		# Reset parser.
+		TITLE_CANDIDATE=""
 	done < "${RUN_FILE}"
 
 	for (( i=0; i<${#TASKS[@]}; i++ ));
 	do
-	  printf "%-${LONGEST_TASK_NAME}s   %s\n" "${TASKS[$i]}" "${TITLES[$i]}"
+		PADDING=0
+		if [[ "${TITLES[$i]}" != "" ]]; then
+			PADDING=$((LONGEST_TASK_NAME+3))
+		fi
+		printf "%-${PADDING}s%s\n" "${TASKS[$i]}" "${TITLES[$i]}"
 	done
 }
 
@@ -53,35 +73,36 @@ cmd_info() {
 	INFO_CANDIDATE=()
 
 	while IFS= read -r line; do
-		if [[ "${line}" == "# "* ]]; then
-			INFO_CANDIDATE+=("${line:2}")
+		if [[ "${line}" =~ $COMMENT_PATTERN ]]; then
+			INFO_CANDIDATE+=("${BASH_REMATCH[1]}")
 			continue
 		fi
-		TASK=$(echo "${line}" | sed -n "s/^run_\([a-zA-Z0-9_]*\).*$/\1/p")
-		if [[ "${TASK}" == "${REQUESTED_TASK}" ]]; then
-			for i in "${INFO_CANDIDATE[@]}"; do
-			  echo "${i}"
-			done
-			exit
+		if [[ "${line}" =~ $TASK_DEF_PATTERN_1 || "${line}" =~ $TASK_DEF_PATTERN_2 ]]; then
+			if [[ "${BASH_REMATCH[1]}" == "${REQUESTED_TASK}" ]]; then
+				for i in "${INFO_CANDIDATE[@]}"; do
+					echo "${i}"
+				done
+				exit
+			fi
 		fi
 		INFO_CANDIDATE=()
 	done < "${RUN_FILE}"
-	echo "No such task: ${REQUESTED_TASK}"
+	echo "No such task: ${REQUESTED_TASK}" >&2
 	exit 1
 }
 
 cmd_execute() {
-	readonly TASK_NAME="$1"
-	readonly TASK_INPUT=( "${@:2}" )
+	readonly TASK="run_$1"
+	readonly INPUT=( "${@:2}" )
 
 	# Load “run” file with task definitions.
 	# shellcheck source=./run.sh
 	source "${RUN_FILE}"
 
 	# Check that subcommand is defined.
-	TYPE=$(type -t "${TASK_NAME}")
+	TYPE=$(type -t "${TASK}")
 	if [[ "${TYPE}" != 'function' ]]; then
-		echo 'No task specified' >&2
+		echo "No such task: $1" >&2
 		exit 1
 	fi
 
@@ -91,7 +112,7 @@ cmd_execute() {
 	fi
 
 	# Invoke subcommand and pass all additional arguments.
-	"${TASK_NAME}" "${TASK_INPUT[@]}"
+	"${TASK}" "${INPUT[@]}"
 }
 
 # Parse CLI arguments.
@@ -105,7 +126,11 @@ while [[ $# -gt 0 ]]; do
 			cmd_help
 			exit
 			;;
-		--list|-l)
+		--version)
+			cmd_version
+			exit
+			;;
+		--list|--ls|-l)
 			COMMAND=( cmd_list )
 			shift
 			continue
@@ -138,11 +163,11 @@ while [[ $# -gt 0 ]]; do
 			continue
 			;;
 		-*)
-			echo "Unknown option $1"
+			echo "Unknown option $1" >&2
 			exit 1
 			;;
 		*)
-			COMMAND=( cmd_execute "run_$1" "${@:2}" )
+			COMMAND=( cmd_execute "$1" "${@:2}" )
 			break
 			;;
 	esac
@@ -154,8 +179,13 @@ readonly COMMAND
 
 # If a run file is given, check that it exists.
 if [[ -n "${RUN_FILE}" && ! -f "${RUN_FILE}" ]]; then
-	echo "No such file: ${RUN_FILE}"
+	echo "No such file: ${RUN_FILE}" >&2
 	exit 2
+fi
+
+if [[ -z "${COMMAND}" ]]; then
+	echo 'No task specified' >&2
+	exit 1
 fi
 
 # Execute command.
