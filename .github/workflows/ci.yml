@@ -1,0 +1,17 @@
+name: CI
+on: push
+jobs:
+  lint:
+    name: Code style
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Run shellcheck
+        run: ./run lint
+  test:
+    name: Unit tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Run all tests
+        run: ./run test

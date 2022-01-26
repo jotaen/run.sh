@@ -79,7 +79,7 @@ cmd_execute() {
 	source "${RUN_FILE}"
 
 	# Check that subcommand is defined.
-	readonly TYPE=$(type -t "${TASK_NAME}")
+	TYPE=$(type -t "${TASK_NAME}")
 	if [[ "${TYPE}" != 'function' ]]; then
 		echo 'No task specified' >&2
 		exit 1
