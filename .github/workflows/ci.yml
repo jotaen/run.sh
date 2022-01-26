@@ -9,9 +9,17 @@ jobs:
       - name: Run shellcheck
         run: ./run lint
   test:
-    name: Unit tests
-    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - name: linux
+            runner_os: ubuntu-latest
+          - name: mac
+            runner_os: macos-latest
+    runs-on: ${{ matrix.runner_os }}
     steps:
       - uses: actions/checkout@v2
-      - name: Run all tests
+      - name: Install test runner
+        run: npm install -g bats
+      - name: Run tests
         run: ./run test
