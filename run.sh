@@ -1,26 +1,32 @@
 #!/usr/bin/env bash
 
-# Check code style with shellcheck.
+# Check code style with shellcheck
 run_lint() {
-	docker run --rm -t \
-		-v "${PWD}:/mnt:ro" \
-		koalaman/shellcheck:stable \
-			run run.sh spec/*.bats spec/resources/*.sh
+	shellcheck \
+		run run.sh spec/*.bats spec/resources/*.sh
 }
 
-# Run all tests.
+# Run all tests
 # https://bats-core.readthedocs.io/en/stable/index.html
 run_test() {
-	docker run --rm -t \
-		-v "${PWD}:/app:ro" \
-		bats/bats:latest \
-			--print-output-on-failure \
-			'/app/spec'
+	bats \
+		--print-output-on-failure \
+		'spec/'
 }
 
-# Perform complete build.
+# Perform complete build
 run_all() {
 	set -o errexit # Exit on first error.
 	run_lint
 	run_test
+}
+
+# Start docker container
+run_docker() {
+	docker run --rm -it \
+		-v "${PWD}:/app:ro" \
+		-v "${PWD}/run:/usr/bin/run:ro" \
+		-w /app \
+		--entrypoint /usr/local/bin/bash \
+		bats/bats:latest
 }
