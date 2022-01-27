@@ -94,6 +94,11 @@ cmd_info() {
 	REQUESTED_TASK="$1"
 	INFO_CANDIDATE=()
 
+	if [[ "${REQUESTED_TASK}" == '' ]]; then
+		echo 'No task specified' >&2
+		exit 1
+	fi
+
 	while IFS= read -r line; do
 		if [[ "${line}" =~ $COMMENT_PATTERN ]]; then
 			INFO_CANDIDATE+=("${BASH_REMATCH[1]}")

@@ -9,18 +9,6 @@ main() {
 	"${BATS_TEST_DIRNAME}/../run" "$@"
 }
 
-test_fails_if_task_not_found() { #@test
-	printf '%s' '
-run_foo() {
-	echo
-}
-' > run.sh
-
-	run main --info asdf
-	[[ "${status}" -eq 1 ]]
-	[[ "${output}" == 'No such task: asdf' ]]
-}
-
 test_prints_description() { #@test
 	printf '%s' '
 # Foo
@@ -76,4 +64,28 @@ run_foo() {
 	run main --info foo
 	[[ "${status}" -eq 0 ]]
 	[[ "${output}" == "${EXPECTED_OUTPUT}" ]]
+}
+
+test_fails_if_task_not_found() { #@test
+	printf '%s' '
+run_foo() {
+	echo
+}
+' > run.sh
+
+	run main --info asdf
+	[[ "${status}" -eq 1 ]]
+	[[ "${output}" == 'No such task: asdf' ]]
+}
+
+test_fails_if_no_task_specified() { #@test
+	printf '%s' '
+run_foo() {
+	echo
+}
+' > run.sh
+
+	run main --info
+	[[ "${status}" -eq 1 ]]
+	[[ "${output}" == 'No task specified' ]]
 }
