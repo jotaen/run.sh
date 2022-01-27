@@ -42,7 +42,7 @@ run_server() {
 }
 ```
 
-You can access all functions that are prefixed with `run_` from your command line: `run install`, `run test` or `run server`.
+You can access all functions that are prefixed with `run_` from your command line. In this case: `run install`, `run test` and `run server`.
 
 You can also explore the `run.sh` task file – for example, by listing all available tasks:
 
@@ -55,18 +55,33 @@ server    Start server in dev mode
 
 ## Task files (`run.sh`)
 
-Task files are regular bash scripts. For `run` to understand them, they only need to follow a certain structure. Apart from that, no additional magic is involved.
+Task files are regular bash scripts. In order for `run` to understand them, they need to follow a certain structure:
+
+- A task is a bash function whose name is prefixed with `run_`
+- Directly above the task, there can be a comment:
+  + The first line of the comment is the task title. The task title is shown when running `run --list`.
+  + All subsequent comment lines are the task description. A the description of a task can be shown by running `run --info install` (where `install` is the task name).
 
 ```bash
-GREETING='Hello World!'
-
-# Task title
-# Underneath the title, there can be more comment lines
-# with arbitrary text.
-run_greet() {
-  echo $GREETING
+# Task Title
+# Task description ...
+# ...
+run_taskname() {
+	exit
 }
 ```
+
+## 3 good reasons for using `run`
+
+- Storing shell commands in shell script files is a pretty obvious thing to do.
+	+ Why wrap up you shell commands in yet another language?
+	+ You don’t have to learn a whole new syntax for it.
+  + You can use all familiar techniques of shell scripting.
+- Consistent interface that is independent of the programming language of your project.
+  + 
+- Your task file is perfectly self-contained, even without the `run` tool itself.
+	+ Re-use your tasks in any environment, by doing `source run.sh` and then invoking the `run_` tasks directly.
+  + Everyone in the team can understand the file without having to use or know about `run`.
 
 ## License
 
