@@ -8,13 +8,14 @@ jobs:
       - uses: actions/checkout@v2
       - name: Run shellcheck
         run: ./run lint
-  test:
+  test_os_versions:
+    name: Test OS
     strategy:
       matrix:
         include:
-          - name: linux
+          - name: Linux
             runner_os: ubuntu-latest
-          - name: mac
+          - name: MacOS
             runner_os: macos-latest
     runs-on: ${{ matrix.runner_os }}
     steps:
@@ -23,3 +24,28 @@ jobs:
         run: npm install -g bats
       - name: Run tests
         run: ./run test
+  test_bash_versions:
+    name: Test bash
+    strategy:
+      matrix:
+        include:
+          - version: 5.1.16
+          - version: 4.4.23
+          - version: 3.2.57
+    runs-on: ubuntu-latest
+    container: bash:${{ matrix.version }}
+    steps:
+      - uses: actions/checkout@v2
+      - name: Environment info
+        run: bash --version
+      - name: Install test runner
+        run: |
+          apk upgrade
+          apk add git
+          git clone https://github.com/bats-core/bats-core.git
+          cd bats-core
+          ./install.sh /usr/local
+          cd ..
+      - name: Run tests
+        run: |
+          ./run test
