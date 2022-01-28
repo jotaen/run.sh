@@ -1,16 +1,10 @@
 #!/usr/bin/env bats
 # shellcheck disable=SC2154
 
-setup() {
-	cd "${BATS_TEST_TMPDIR}" || exit 1
-}
-
-main() {
-	"${BATS_TEST_DIRNAME}/../run" "$@"
-}
+load setup.sh
 
 test_fails_if_no_task_specified() { #@test
-	cp "${BATS_TEST_DIRNAME}/resources/hello-world.sh" run.sh
+	create_from run.sh "${BATS_TEST_DIRNAME}/resources/hello-world.sh"
 
 	run main -v
 	[[ "${status}" -eq 1 ]]
@@ -18,7 +12,7 @@ test_fails_if_no_task_specified() { #@test
 }
 
 test_fails_if_task_does_not_exist() { #@test
-	cp "${BATS_TEST_DIRNAME}/resources/hello-world.sh" run.sh
+	create_from run.sh "${BATS_TEST_DIRNAME}/resources/hello-world.sh"
 
 	run main foobar
 	[[ "${status}" -eq 1 ]]
@@ -26,7 +20,7 @@ test_fails_if_task_does_not_exist() { #@test
 }
 
 test_disregards_invalid_names() { #@test
-	printf '%s' '
+	create run.sh '
 run_foo:bar() {
 	echo
 }
@@ -38,7 +32,7 @@ run_foo-bar() {
 run_%!&@() {
 	echo
 }
-' > run.sh
+'
 	run main --list
 	[[ "${status}" -eq 0 ]]
 	[[ "${output}" == '' ]]

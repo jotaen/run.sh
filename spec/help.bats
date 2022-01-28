@@ -1,13 +1,7 @@
 #!/usr/bin/env bats
 # shellcheck disable=SC2154
 
-setup() {
-	cd "${BATS_TEST_TMPDIR}" || exit 1
-}
-
-main() {
-	"${BATS_TEST_DIRNAME}/../run" "$@"
-}
+load setup.sh
 
 test_help() { #@test
 	# Long flag

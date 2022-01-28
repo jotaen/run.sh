@@ -1,16 +1,10 @@
 #!/usr/bin/env bats
 # shellcheck disable=SC2154
 
-setup() {
-	cd "${BATS_TEST_TMPDIR}" || exit 1
-}
-
-main() {
-	"${BATS_TEST_DIRNAME}/../run" "$@"
-}
+load setup.sh
 
 test_returns_empty_for_empty_file() { #@test
-	echo "" > run.sh
+	create run.sh ''
 
 	run main --list
 	[[ "${status}" -eq 0 ]]
@@ -18,7 +12,7 @@ test_returns_empty_for_empty_file() { #@test
 }
 
 test_lists_all_tasks_and_their_title() { #@test
-	cp "${BATS_TEST_DIRNAME}/resources/nodejs.sh" run.sh
+	create_from run.sh "${BATS_TEST_DIRNAME}/resources/nodejs.sh"
 	EXPECTED_OUTPUT='install   Install NodeJS dependencies
 test      Execute unit tests
 server    Start web server'
@@ -40,7 +34,7 @@ server    Start web server'
 }
 
 test_omit_title_is_not_given() { #@test
-	printf '%s' '
+	create run.sh '
 run_noname1() {
 	echo
 }
@@ -63,7 +57,7 @@ run_second() {
 run_noname3() {
 	echo
 }
-' > run.sh
+'
 	EXPECTED_OUTPUT='noname1
 first     This task has a title
 noname2

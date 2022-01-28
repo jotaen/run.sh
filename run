@@ -231,10 +231,23 @@ while [[ $# -gt 0 ]]; do
 	esac
 done
 
-# If a run file is given, check that it exists.
-if [[ -n "${TASK_FILE}" && ! -f "${TASK_FILE}" ]]; then
-	echo "No such file: ${TASK_FILE}" >&2
-	exit 2
+# If task file is given, check it.
+if [[ -n "${TASK_FILE}" ]]; then
+	# Check that it’s a regular file.
+	if [[ -d "${TASK_FILE}" ]]; then
+		echo "Not a file: ${TASK_FILE}" >&2
+		exit 2
+	fi
+	# Check that it exists.
+	if [[ ! -f "${TASK_FILE}" ]]; then
+		echo "No such file: ${TASK_FILE}" >&2
+		exit 2
+	fi
+	# Check that it’s executable.
+	if [[ ! -x "${TASK_FILE}" ]]; then
+		echo "File not executable: ${TASK_FILE}" >&2
+		exit 2
+	fi
 fi
 
 if [[ ${#ACTION[@]} == 0 ]]; then
