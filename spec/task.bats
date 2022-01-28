@@ -3,14 +3,6 @@
 
 load setup.sh
 
-test_fails_if_no_task_specified() { #@test
-	create_from run.sh "${BATS_TEST_DIRNAME}/resources/hello-world.sh"
-
-	run main -v
-	[[ "${status}" -eq 1 ]]
-	[[ "${output}" == 'No task specified' ]]
-}
-
 test_fails_if_task_does_not_exist() { #@test
 	create_from run.sh "${BATS_TEST_DIRNAME}/resources/hello-world.sh"
 

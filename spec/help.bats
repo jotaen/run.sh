@@ -13,9 +13,4 @@ test_help() { #@test
 	run main -h
 	[[ "${status}" -eq 0 ]]
 	[[ "${output}" == *"Usage: run"* ]]
-
-	# No arguments at all
-	run main
-	[[ "${status}" -eq 0 ]]
-	[[ "${output}" == *"Usage: run"* ]]
 }

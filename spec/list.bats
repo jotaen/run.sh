@@ -33,6 +33,16 @@ server    Start web server'
 	[[ "${output}" == "${EXPECTED_OUTPUT}" ]]
 }
 
+test_defaults_to_list_if_no_argument_given() { #@test
+	create_from run.sh "${BATS_TEST_DIRNAME}/resources/hello-world.sh"
+
+	EXPECTED_OUTPUT='greet   Prints a greeting'
+
+	run main
+	[[ "${status}" -eq 0 ]]
+	[[ "${output}" == "${EXPECTED_OUTPUT}" ]]
+}
+
 test_omit_title_is_not_given() { #@test
 	create run.sh '
 run_noname1() {

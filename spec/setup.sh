@@ -10,7 +10,7 @@ create() {
 	FILE_PATH="$1"
 	FILE_CONTENTS="$2"
 	printf '%s' "$FILE_CONTENTS" > "$FILE_PATH"
-	chmod +x "$1"
+	chmod +x "$FILE_PATH"
 }
 
 create_from() {
