@@ -3,7 +3,7 @@
 
 load setup.sh
 
-test_version() { #@test
+version::prints_version_info() { #@test
 	run main --version
 	[[ "${status}" -eq 0 ]]
 	[[ "${output}" == 'Version '* ]]

@@ -3,7 +3,7 @@
 
 load setup.sh
 
-test_does_not_pollute_scope() { #@test
+environment::does_not_pollute_scope() { #@test
 	# shellcheck disable=SC2016
 	create run.sh '
 # Print out all function names.
@@ -29,7 +29,7 @@ run_check() {
 	[[ "${output}" == "${EXPECTED_OUTPUT}" ]]
 }
 
-test_correct_bash_source_variable() { #@test
+environment::correct_bash_source_variable() { #@test
 	# shellcheck disable=SC2016
 	create run.sh '
 THIS_FILE="${BASH_SOURCE[0]}"

@@ -3,7 +3,7 @@
 
 load setup.sh
 
-test_fails_if_task_does_not_exist() { #@test
+task::fails_if_task_does_not_exist() { #@test
 	create_from run.sh "${BATS_TEST_DIRNAME}/resources/hello-world.sh"
 
 	run main foobar
@@ -11,7 +11,7 @@ test_fails_if_task_does_not_exist() { #@test
 	[[ "${output}" == 'No such task: foobar' ]]
 }
 
-test_disregards_invalid_names() { #@test
+task::disregards_invalid_names() { #@test
 	create run.sh '
 run_foo:bar() {
 	echo

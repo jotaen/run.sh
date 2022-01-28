@@ -3,7 +3,7 @@
 
 load setup.sh
 
-test_verbose_output() { #@test
+verbose::verbose_output() { #@test
 	create_from run.sh "${BATS_TEST_DIRNAME}/resources/hello-world.sh"
 	EXPECTED_OUTPUT="+ run_greet
 + NAME=World

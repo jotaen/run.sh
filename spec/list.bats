@@ -3,7 +3,7 @@
 
 load setup.sh
 
-test_returns_empty_for_empty_file() { #@test
+list::returns_empty_for_empty_file() { #@test
 	create run.sh ''
 
 	run main --list
@@ -11,7 +11,7 @@ test_returns_empty_for_empty_file() { #@test
 	[[ "${output}" == "" ]]
 }
 
-test_lists_all_tasks_and_their_title() { #@test
+list::lists_all_tasks_and_their_title() { #@test
 	create_from run.sh "${BATS_TEST_DIRNAME}/resources/nodejs.sh"
 	EXPECTED_OUTPUT='install   Install NodeJS dependencies
 test      Execute unit tests
@@ -33,7 +33,7 @@ server    Start web server'
 	[[ "${output}" == "${EXPECTED_OUTPUT}" ]]
 }
 
-test_defaults_to_list_if_no_argument_given() { #@test
+list::defaults_to_list_if_no_argument_given() { #@test
 	create_from run.sh "${BATS_TEST_DIRNAME}/resources/hello-world.sh"
 
 	EXPECTED_OUTPUT='greet   Prints a greeting'
@@ -43,7 +43,7 @@ test_defaults_to_list_if_no_argument_given() { #@test
 	[[ "${output}" == "${EXPECTED_OUTPUT}" ]]
 }
 
-test_omit_title_is_not_given() { #@test
+list::omit_title_is_not_given() { #@test
 	create run.sh '
 run_noname1() {
 	echo

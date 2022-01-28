@@ -3,7 +3,7 @@
 
 load setup.sh
 
-test_help() { #@test
+help::help() { #@test
 	# Long flag
 	run main --help
 	[[ "${status}" -eq 0 ]]

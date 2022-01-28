@@ -3,7 +3,7 @@
 
 load setup.sh
 
-test_defaults_to_local_run_sh() { #@test
+file::defaults_to_local_run_sh() { #@test
 	create_from run.sh "${BATS_TEST_DIRNAME}/resources/hello-world.sh"
 
 	run main greet
@@ -11,7 +11,7 @@ test_defaults_to_local_run_sh() { #@test
 	[[ "${output}" == 'Hello, World!' ]]
 }
 
-test_set_specific_file() { #@test
+file::set_specific_file() { #@test
 	create_from hello-world.sh "${BATS_TEST_DIRNAME}/resources/hello-world.sh"
 
 	# Long flag with equal sign
@@ -35,7 +35,7 @@ test_set_specific_file() { #@test
 	[[ "${output}" == 'Hello, everyone!' ]]
 }
 
-test_specific_file_takes_precedence() { #@test
+file::specific_file_takes_precedence() { #@test
 	# Create local `run.sh` file, which should be disregarded.
 	create run.sh ''
 	create_from hello-world.sh "${BATS_TEST_DIRNAME}/resources/hello-world.sh"
@@ -46,7 +46,7 @@ test_specific_file_takes_precedence() { #@test
 	[[ "${output}" == 'Hello, World!' ]]
 }
 
-test_fails_if_no_such_run_file() { #@test
+file::fails_if_no_such_run_file() { #@test
 	# With default run file
 	run main greet world
 	[[ "${status}" -eq 2 ]]
@@ -58,7 +58,7 @@ test_fails_if_no_such_run_file() { #@test
 	[[ "${output}" == 'No such file: non-existing-file.sh' ]]
 }
 
-test_fails_on_directories() { #@test
+file::fails_on_directories() { #@test
 	mkdir foo
 
 	run main -f=foo --list
@@ -66,7 +66,7 @@ test_fails_on_directories() { #@test
 	[[ "${output}" == 'Not a file: foo' ]]
 }
 
-test_fails_is_not_executable() { #@test
+file::fails_is_not_executable() { #@test
 	touch foo
 
 	run main -f=foo --list

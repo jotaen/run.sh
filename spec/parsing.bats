@@ -3,7 +3,7 @@
 
 load setup.sh
 
-test_parses_bash_syntax_variations() { #@test
+parsing::parses_bash_syntax_variations() { #@test
 	create run.sh '
 run_1() {
 	echo 1
