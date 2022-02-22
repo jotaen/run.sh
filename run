@@ -1,7 +1,10 @@
 #!/usr/bin/env bash
 
+###############################################################################
+# run is a utility for organizing your project’s CLI commands.
+# https://run.jotaen.net
+###############################################################################
 # MIT License
-#
 # Copyright (c) 2022 Jan Heuermann, https://www.jotaen.net
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -11,8 +14,8 @@
 # copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
 #
-# The above copyright notice and this permission notice shall be included in all
-# copies or substantial portions of the Software.
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
 #
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 # IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
@@ -21,17 +24,21 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
+###############################################################################
 
-# Setup configuration and globals.
-RUN_FILE='./run.sh'
+# Runtime configuration.
+# These variables can be overriden while parsing the flags.
+TASK_FILE='./run.sh'
 IS_VERBOSE='false'
-COMMAND=()
+ACTION=(action_list)
 
+# Regex patterns for parsing the task file.
 COMMENT_PATTERN='^#{1,}[[:blank:]]?(.*)$'
 TASK_DEF_PATTERN_1='^[[:blank:]]*run_([a-zA-Z0-9_]+)[[:blank:]]*\([[:blank:]]*\)'
 TASK_DEF_PATTERN_2='^[[:blank:]]*function[[:blank:]]*run_([a-zA-Z0-9_]+)'
 
-cmd_help() {
+# The --help procedure.
+action_help() {
 	echo 'Run tasks from a run.sh file.'
 	echo
 	echo 'Usage: run [OPTION] TASK [INPUT...]'
@@ -45,141 +52,165 @@ cmd_help() {
 	echo '      --version    Print version of this command'
 }
 
-cmd_version() {
+# The --version procedure.
+action_version() {
 	echo 'Version 1.0-rc1'
 }
 
-cmd_list() {
-	TITLE_CANDIDATE=""
-	TASKS=()
-	TITLES=()
-	LONGEST_TASK_NAME=0 # Used for aligning the output.
+# The --list procedure.
+action_list() {
+	local title_candidate=""
+	local tasks=() # All encountered task names.
+	local titles=() # All encountered titles. (Same arity as $tasks.)
+	local longest_task_name=0 # Needed for aligning the output.
 
+	# Parse the task file.
 	while IFS= read -r line; do
 		# Process comment block.
 		if [[ "${line}" =~ $COMMENT_PATTERN ]]; then
-			if [[ -z "${TITLE_CANDIDATE}" ]]; then
-				COMMENT_TEXT="${BASH_REMATCH[1]}"
-				TITLE_CANDIDATE="${COMMENT_TEXT}"
+			if [[ -z "${title_candidate}" ]]; then
+				local comment_text="${BASH_REMATCH[1]}"
+				title_candidate="${comment_text}"
 			fi
 			continue
 		fi
 
 		# After a comment block, there must be the task definition.
-		# Allow both styles of command definition `run_foo() {...` and `function run_foo {`.
+		# Allow both definition styles: `run_foo() {...` and `function run_foo {`.
 		if [[ "${line}" =~ $TASK_DEF_PATTERN_1 || "${line}" =~ $TASK_DEF_PATTERN_2 ]]; then
-			TASK="${BASH_REMATCH[1]}"
-			TASKS+=("${TASK}")
-			TITLES+=("${TITLE_CANDIDATE}")
-			if [[ ${#TASK} -gt $LONGEST_TASK_NAME ]]; then
-				LONGEST_TASK_NAME=${#TASK}
+			local task="${BASH_REMATCH[1]}"
+			tasks+=("${task}")
+			titles+=("${title_candidate}")
+			if [[ ${#task} -gt $longest_task_name ]]; then
+				longest_task_name=${#task}
 			fi
 		fi
 
-		# Reset parser.
-		TITLE_CANDIDATE=""
-	done < "${RUN_FILE}"
+		# Reset parser for next iteration.
+		title_candidate=""
+	done < "${TASK_FILE}"
 
-	for (( i=0; i<${#TASKS[@]}; i++ ));
-	do
-		PADDING=0
-		if [[ "${TITLES[$i]}" != "" ]]; then
-			PADDING=$((LONGEST_TASK_NAME+3))
+	# Print out the gathered information.
+	local column_offset=3
+	for (( i=0; i<${#tasks[@]}; i++ )); do
+		local padding=0
+		if [[ "${titles[$i]}" != "" ]]; then
+			padding=$((longest_task_name+column_offset))
 		fi
-		printf "%-${PADDING}s%s\n" "${TASKS[$i]}" "${TITLES[$i]}"
+		printf "%-${padding}s%s\n" "${tasks[$i]}" "${titles[$i]}"
 	done
 }
 
-cmd_info() {
-	REQUESTED_TASK="$1"
-	INFO_CANDIDATE=()
+# The --info procedure.
+action_info() {
+	local requested_task="$1"
+	local comment_block_candidate=() # All comment lines for the task.
 
-	if [[ "${REQUESTED_TASK}" == '' ]]; then
+	# Abort if no task name was specified.
+	if [[ "${requested_task}" == '' ]]; then
 		echo 'No task specified' >&2
 		exit 1
 	fi
 
+	# Parse the task file.
 	while IFS= read -r line; do
 		if [[ "${line}" =~ $COMMENT_PATTERN ]]; then
-			INFO_CANDIDATE+=("${BASH_REMATCH[1]}")
+			comment_block_candidate+=("${BASH_REMATCH[1]}")
 			continue
 		fi
 		if [[ "${line}" =~ $TASK_DEF_PATTERN_1 || "${line}" =~ $TASK_DEF_PATTERN_2 ]]; then
-			if [[ "${BASH_REMATCH[1]}" == "${REQUESTED_TASK}" ]]; then
-				for i in "${INFO_CANDIDATE[@]}"; do
+			if [[ "${BASH_REMATCH[1]}" == "${requested_task}" ]]; then
+				# Print out the gathered comment lines.
+				for i in "${comment_block_candidate[@]}"; do
 					echo "${i}"
 				done
 				exit
 			fi
 		fi
-		INFO_CANDIDATE=()
-	done < "${RUN_FILE}"
-	echo "No such task: ${REQUESTED_TASK}" >&2
+		comment_block_candidate=()
+	done < "${TASK_FILE}"
+	echo "No such task: ${requested_task}" >&2
 	exit 1
 }
 
-cmd_execute() {
-	readonly TASK="run_$1"
-	readonly INPUT=( "${@:2}" )
+# The procedure when invoking a task.
+action_execute() {
+	# Preserve all needed parameters before the cleanup.
+	# The fancy prefix is necessary because these variables
+	# are also visible within the task script.
+	readonly _____run_task_name="$1"
+	readonly _____run_task_identifier="run_${_____run_task_name}"
+	readonly _____run_input=( "${@:2}" )
+	readonly _____run_is_verbose="${IS_VERBOSE}"
+	readonly _____run_task_file="${TASK_FILE}"
+
+	# Clean up environment, to not pollute the task file.
+	unset -f action_help
+	unset -f action_info
+	unset -f action_list
+	unset -f action_version
+	unset -f action_execute
+	unset TASK_FILE
+	unset IS_VERBOSE
+	unset ACTION
+	unset COMMENT_PATTERN
+	unset TASK_DEF_PATTERN_1
+	unset TASK_DEF_PATTERN_2
+	set -- # Reset input arguments ($1, $2, ...)
 
 	# Load “run” file with task definitions.
 	# shellcheck source=./run.sh
-	source "${RUN_FILE}"
+	source "${_____run_task_file}"
 
 	# Check that subcommand is defined.
-	TYPE=$(type -t "${TASK}")
-	if [[ "${TYPE}" != 'function' ]]; then
-		echo "No such task: $1" >&2
+	if [[ "$(type -t "${_____run_task_identifier}")" != 'function' ]]; then
+		echo "No such task: ${_____run_task_name}" >&2
 		exit 1
 	fi
 
-	# Activate verbose mode (if requested).
-	if "${IS_VERBOSE}"; then
+	# If requested, activate verbose mode.
+	if "${_____run_is_verbose}"; then
 		set -o xtrace
 	fi
 
 	# Invoke subcommand and pass all additional arguments.
-	"${TASK}" "${INPUT[@]}"
+	"${_____run_task_identifier}" "${_____run_input[@]}"
 }
 
 # Parse CLI arguments.
-if [[ $# -eq 0 ]]; then
-	cmd_help
-	exit
-fi
 while [[ $# -gt 0 ]]; do
 	case $1 in
 		--help|-h)
-			cmd_help
+			action_help
 			exit
 			;;
 		--version)
-			cmd_version
+			action_version
 			exit
 			;;
 		--list|--ls|-l)
-			COMMAND=( cmd_list )
+			ACTION=( action_list )
 			shift
 			continue
 			;;
 		--info=*|-i=*)
-			COMMAND=( cmd_info "${1#*=}" )
+			ACTION=( action_info "${1#*=}" )
 			shift
 			continue
 			;;
 		--info|-i)
-			COMMAND=( cmd_info "$2" )
+			ACTION=( action_info "$2" )
 			shift
 			shift
 			continue
 			;;
 		--file=*|-f=*)
-			RUN_FILE="${1#*=}"
+			TASK_FILE="${1#*=}"
 			shift
 			continue
 			;;
 		--file|-f)
-			RUN_FILE="$2"
+			TASK_FILE="$2"
 			shift
 			shift
 			continue
@@ -194,26 +225,30 @@ while [[ $# -gt 0 ]]; do
 			exit 1
 			;;
 		*)
-			COMMAND=( cmd_execute "$1" "${@:2}" )
+			ACTION=( action_execute "$1" "${@:2}" )
 			break
 			;;
 	esac
 done
 
-readonly RUN_FILE
-readonly IS_VERBOSE
-readonly COMMAND
-
-# If a run file is given, check that it exists.
-if [[ -n "${RUN_FILE}" && ! -f "${RUN_FILE}" ]]; then
-	echo "No such file: ${RUN_FILE}" >&2
-	exit 2
+# If task file is given, check it.
+if [[ -n "${TASK_FILE}" ]]; then
+	# Check that it’s a regular file.
+	if [[ -d "${TASK_FILE}" ]]; then
+		echo "Not a file: ${TASK_FILE}" >&2
+		exit 2
+	fi
+	# Check that it exists.
+	if [[ ! -f "${TASK_FILE}" ]]; then
+		echo "No such file: ${TASK_FILE}" >&2
+		exit 2
+	fi
+	# Check that it’s executable.
+	if [[ ! -x "${TASK_FILE}" ]]; then
+		echo "File not executable: ${TASK_FILE}" >&2
+		exit 2
+	fi
 fi
 
-if [[ -z "${COMMAND}" ]]; then
-	echo 'No task specified' >&2
-	exit 1
-fi
-
-# Execute command.
-"${COMMAND[@]}"
+# Execute action.
+"${ACTION[@]}"

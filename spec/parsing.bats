@@ -1,16 +1,10 @@
 #!/usr/bin/env bats
 # shellcheck disable=SC2154
 
-setup() {
-	cd "${BATS_TEST_TMPDIR}" || exit 1
-}
+load setup.sh
 
-main() {
-	"${BATS_TEST_DIRNAME}/../run" "$@"
-}
-
-test_parses_bash_syntax_variations() { #@test
-	printf '%s' '
+parsing::parses_bash_syntax_variations() { #@test
+	create run.sh '
 run_1() {
 	echo 1
 }
@@ -30,7 +24,7 @@ function run_3 {
 	function	run_4			{
 	echo 4
 }
-' > run.sh
+'
 	EXPECTED_OUTPUT='1
 2
 3

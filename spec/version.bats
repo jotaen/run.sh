@@ -1,15 +1,9 @@
 #!/usr/bin/env bats
 # shellcheck disable=SC2154
 
-setup() {
-	cd "${BATS_TEST_TMPDIR}" || exit 1
-}
+load setup.sh
 
-main() {
-	"${BATS_TEST_DIRNAME}/../run" "$@"
-}
-
-test_version() { #@test
+version::prints_version_info() { #@test
 	run main --version
 	[[ "${status}" -eq 0 ]]
 	[[ "${output}" == 'Version '* ]]
