@@ -4,7 +4,7 @@
 
 ## Get `run`
 
-1. **[Download the latest version here](run)**
+1. **[Download the latest version here](https://github.com/jotaen/run/releases)**
 2. Make it executable (`chmod +x run`)
 3. Put it into your path (e.g. `mv run /usr/local/bin/run`, which might require `sudo` privileges)
 
@@ -12,6 +12,22 @@
 
 - Linux or MacOS
 - Bash 3.2 or higher
+
+## Why `run`?
+
+- Store and share
+  + Capture often-used commands and entrypoints
+  + Make them re-usable for other developers
+  + No tool enforcement, you can always `source`
+- Storing shell commands in shell script files is a pretty obvious thing to do.
+  + Why wrap up you shell commands in yet another language?
+  + You don’t have to learn a whole new syntax for it.
+  + You can use all familiar techniques of shell scripting.
+- Consistent interface that is independent of the programming language of your project.
+  + 
+- Your task file is perfectly self-contained, even without the `run` tool itself.
+  + Re-use your tasks in any environment, by doing `source run.sh` and then invoking the `run_` tasks directly.
+  + Everyone in the team can understand the file without having to use or know about `run`.
 
 ## Example use-case
 
@@ -71,17 +87,15 @@ run_taskname() {
 }
 ```
 
-## 3 good reasons for using `run`
+## Shell script cheat sheet
 
-- Storing shell commands in shell script files is a pretty obvious thing to do.
-	+ Why wrap up you shell commands in yet another language?
-	+ You don’t have to learn a whole new syntax for it.
-  + You can use all familiar techniques of shell scripting.
-- Consistent interface that is independent of the programming language of your project.
-  + 
-- Your task file is perfectly self-contained, even without the `run` tool itself.
-	+ Re-use your tasks in any environment, by doing `source run.sh` and then invoking the `run_` tasks directly.
-  + Everyone in the team can understand the file without having to use or know about `run`.
+### Retrieve input arguments
+
+### Set default values for variables
+
+### Pass through input arguments
+
+### Include other scripts
 
 ## License
 
