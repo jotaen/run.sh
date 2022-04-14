@@ -243,11 +243,6 @@ if [[ -n "${TASK_FILE}" ]]; then
 		echo "No such file: ${TASK_FILE}" >&2
 		exit 2
 	fi
-	# Check that it’s executable.
-	if [[ ! -x "${TASK_FILE}" ]]; then
-		echo "File not executable: ${TASK_FILE}" >&2
-		exit 2
-	fi
 fi
 
 # Execute action.

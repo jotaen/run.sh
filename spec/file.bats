@@ -65,11 +65,3 @@ file::fails_on_directories() { #@test
 	[[ "${status}" -eq 2 ]]
 	[[ "${output}" == 'Not a file: foo' ]]
 }
-
-file::fails_is_not_executable() { #@test
-	touch foo
-
-	run main -f=foo --list
-	[[ "${status}" -eq 2 ]]
-	[[ "${output}" == 'File not executable: foo' ]]
-}
