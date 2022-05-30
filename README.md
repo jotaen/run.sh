@@ -8,10 +8,7 @@ With `run.sh`, you keep your project’s CLI commands neatly organized.
 2. Make it executable (`chmod +x run`)
 3. Put it into your `$PATH` (e.g. `mv run /usr/local/bin/run`, which might require `sudo` privileges)
 
-### Requirements
-
-- Linux or MacOS
-- Bash 3.2 or higher
+Tested on Linux and MacOS, with bash 3.2+.
 
 ## Quick Start
 
