@@ -1,23 +1,21 @@
 # `run.sh`
 
-With `run.sh`, you keep your project’s CLI commands neatly organized.
+With a `run.sh` file, you can keep your project’s CLI commands neatly organized.
 
-## Get the Runner
+## Get the Tool
 
-1. **[Download the latest version of the `run` tool here](https://github.com/jotaen/run.sh/releases)**
+1. [**Download** the latest version of the `run` tool here](https://github.com/jotaen/run.sh/releases)
 2. Make it executable (`chmod +x run`)
-3. Put it into your `$PATH` (e.g. `mv run /usr/local/bin/run`, which might require `sudo` privileges)
+3. Put it into your `$PATH` (e.g. `mv run /usr/local/bin/run`, which might require admin privileges)
 
 Tested on Linux and MacOS, with bash 3.2+.
 
 ## Quick Start
 
-To get started, put a file named `run.sh` into the root of your repository. There are two rules:
+To get started, put a file named `run.sh` into the root of your repository. A `run.sh` file is an ordinary shell script that contains the definitions for your tasks. There are two rules:
 
-- All commands which are prefixed by `run_` are treated as tasks. They will be exposed through the `run` CLI tool.
-- Comment blocks that precede tasks are interpreted as help text: the first line of the comment block is the task title, all subsequent lines are additional description.
-
-Other than that, a `run.sh` file is an ordinary bash script.
+- A task is a shell command whose name starts with `run_`. That way, it will be recognised and exposed through the `run` CLI tool.
+- A preceding comment block is interpreted as the help text of a task: the first line of the comment block is the task title, all subsequent lines are additional description.
 
 ```bash
 # Print greeting
@@ -26,14 +24,14 @@ run_greet() {
 }
 ```
 
-On the CLI, you can now invoke the “hello” task:
+On the CLI, you can invoke the “greet” task like so:
 
 ```
 $ run greet
 Hello World
 ```
 
-In order to get an overview, explore all available tasks:
+In order to get an overview, explore all available tasks via:
 
 ```
 $ run --list
@@ -49,7 +47,7 @@ run_greet
 
 ## Security Notice
 
-One word about security: the `run` tool will evaluate the entire `run.sh` file on every invocation. To prevent execution of malicious code on your personal computer, you should always inspect untrusted `run.sh` files before using them.
+One word about security: the `run` tool will evaluate the entire `run.sh` file on every invocation. To prevent execution of malicious code on your personal computer, you should always inspect unknown `run.sh` files before using them.
 
 ## License
 
