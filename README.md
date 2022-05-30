@@ -1,102 +1,55 @@
-# `run`
+# `run.sh`
 
-`run` is a utility for keeping your project’s CLI commands neatly organized.
+With `run.sh`, you keep your project’s CLI commands neatly organized.
 
-## Get `run`
+## Get the Runner
 
-1. **[Download the latest version here](https://github.com/jotaen/run/releases)**
+1. **[Download the latest version of the `run` tool here](https://github.com/jotaen/run.sh/releases)**
 2. Make it executable (`chmod +x run`)
-3. Put it into your path (e.g. `mv run /usr/local/bin/run`, which might require `sudo` privileges)
+3. Put it into your `$PATH` (e.g. `mv run /usr/local/bin/run`, which might require `sudo` privileges)
 
 ### Requirements
 
 - Linux or MacOS
 - Bash 3.2 or higher
 
-## Why `run`?
+## Quick Start
 
-- Store and share
-  + Capture often-used commands and entrypoints
-  + Make them re-usable for other developers
-  + No tool enforcement, you can always `source`
-- Storing shell commands in shell script files is a pretty obvious thing to do.
-  + Why wrap up you shell commands in yet another language?
-  + You don’t have to learn a whole new syntax for it.
-  + You can use all familiar techniques of shell scripting.
-- Consistent interface that is independent of the programming language of your project.
-  + 
-- Your task file is perfectly self-contained, even without the `run` tool itself.
-  + Re-use your tasks in any environment, by doing `source run.sh` and then invoking the `run_` tasks directly.
-  + Everyone in the team can understand the file without having to use or know about `run`.
+To get started, put a file named `run.sh` into the root of your repository. There are two rules:
 
-## Example use-case
+- All commands which are prefixed by `run_` are treated as tasks. They will be exposed through the `run` CLI tool.
+- Comment blocks that precede tasks are interpreted as help text: the first line of the comment block is the task title, all subsequent lines are additional description.
 
-Let’s say you are developing a web server in Python. You have a bunch of CLI commands for installing dependencies, running the tests, or starting up the dev server. However, it can be tedious to memorize and type them in by hand every time.
-
-With `run`, you can stash all these commands in a central task file (named `./run.sh`) in your project root:
+Other than that, a `run.sh` file is an ordinary bash script.
 
 ```bash
-# Install dependencies
-run_install() {
-  pip install --requirement requirements.txt
-  pip install --requirement dev-requirements.txt
-}
-
-# Execute unit tests
-run_test() {
-  python \
-    --module unittest \
-    discover --pattern "*_test.py"
-}
-
-# Start server in dev mode
-run_server() {
-  python app/main.py \
-    --port=8080 \
-    --log=DEBUG \
-    --devmode
+# Print greeting
+run_greet() {
+  echo 'Hello World'
 }
 ```
 
-You can access all functions that are prefixed with `run_` from your command line. In this case: `run install`, `run test` and `run server`.
+On the CLI, you can now invoke the “hello” task:
 
-You can also explore the `run.sh` task file – for example, by listing all available tasks:
+```
+$ run greet
+Hello World
+```
+
+In order to get an overview, explore all available tasks:
 
 ```
 $ run --list
-install   Install dependencies
-test      Execute unit tests
-server    Start server in dev mode
+greet   Print greeting
 ```
 
-## Task files (`run.sh`)
+If you don’t want to use the `run` tool, you can also source the `run.sh` file and reference the full task name directly.
 
-Task files are regular bash scripts. In order for `run` to understand them, they need to follow a certain structure:
-
-- A task is a bash function whose name is prefixed with `run_`
-- Directly above the task, there can be a comment:
-  + The first line of the comment is the task title. The task title is shown when running `run --list`.
-  + All subsequent comment lines are the task description. A the description of a task can be shown by running `run --info install` (where `install` is the task name).
-
-```bash
-# Task Title
-# Task description ...
-# ...
-run_taskname() {
-	exit
-}
 ```
-
-## Shell script cheat sheet
-
-### Retrieve input arguments
-
-### Set default values for variables
-
-### Pass through input arguments
-
-### Include other scripts
+$ . run.sh
+run_greet
+```
 
 ## License
 
-`run` is free and open-source software distributed under the [MIT license](LICENSE.txt).
+`run.sh` is free and open-source software distributed under the [MIT license](LICENSE.txt).
