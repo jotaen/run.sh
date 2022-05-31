@@ -1,4 +1,4 @@
-FROM bash:latest
+FROM bash:5.1.16
 
 RUN apk upgrade
 

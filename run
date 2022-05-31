@@ -41,7 +41,7 @@ TASK_DEF_PATTERN_2='^[[:blank:]]*function[[:blank:]]*run_([a-zA-Z0-9_]+)'
 action_help() {
 	echo 'Run tasks from a run.sh file.'
 	echo
-	echo 'Usage: run [OPTION] TASK [INPUT...]'
+	echo 'Usage: run [OPTION] TASK [TASK_ARGS...]'
 	echo
 	echo 'Options:'
 	echo '  -f, --file       Specify the task file (default: ./run.sh)'
@@ -54,7 +54,8 @@ action_help() {
 
 # The --version procedure.
 action_version() {
-	echo 'Version 1.0-rc1'
+	echo 'Version 1'
+	echo 'https://run.jotaen.net'
 }
 
 # The --list procedure.

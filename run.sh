@@ -28,7 +28,7 @@ run_all() {
 	run_test
 }
 
-# Start build environment in docker container
+# Start build/dev environment in docker container
 # - The image contains all necessary tooling
 # - The image will be created (and kept up to date) automatically
 # - Inside the container, the `run` command is globally available
