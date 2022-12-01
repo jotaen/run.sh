@@ -29,7 +29,6 @@
 # Runtime configuration.
 # These variables can be overriden while parsing the flags.
 TASK_FILE='./run.sh'
-IS_VERBOSE='false'
 ACTION=(run::action-list)
 
 # Regex patterns for parsing the task file.
@@ -48,7 +47,6 @@ run::action-help() {
 	echo '  -h, --help       Print this help'
 	echo '  -i, --info task  Show task description'
 	echo '  -l, --list       List all available tasks'
-	echo '  -v, --verbose    Print task command before executing'
 	echo '      --version    Print version of this command'
 }
 
@@ -139,14 +137,12 @@ run::action-execute() {
 	readonly task_name="$1"
 	readonly task_identifier="run::${task_name}"
 	readonly input=( "${@:2}" )
-	readonly is_verbose="${IS_VERBOSE}"
 	readonly task_file="${TASK_FILE}"
 
-	run_sh='
 source '"${task_file}"'
 '
 
-	# Check that subcommand is defined.
+	# Add check, whether subcommand is defined.
 	# shellcheck disable=SC2016
 	run_sh+='
 if [[ "$(type -t '"${task_identifier}"')" != "function" ]]; then
@@ -155,16 +151,12 @@ if [[ "$(type -t '"${task_identifier}"')" != "function" ]]; then
 fi
 '
 
-	# If requested, activate verbose mode.
-	if "${is_verbose}"; then
-		run_sh+='
-set -o xtrace
-'
-	fi
-
+	# Add task invocation.
 	run_sh+='
 '"${task_identifier} ${input[*]}"'
 '
+
+	# Run the final script.
 	bash -c "$run_sh"
 }
 
@@ -203,11 +195,6 @@ while [[ $# -gt 0 ]]; do
 		--file|-f)
 			TASK_FILE="$2"
 			shift
-			shift
-			continue
-			;;
-		--verbose|-v)
-			IS_VERBOSE='true'
 			shift
 			continue
 			;;
