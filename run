@@ -139,6 +139,19 @@ run::action-execute() {
 	readonly input=( "${@:2}" )
 	readonly task_file="${TASK_FILE}"
 
+	# Check shebang of task file.
+	shebang=$(head -n 1 "${task_file}")
+	if [[ "${shebang}" == '#!'* &&
+		    "${shebang}" != *'bash'* ]]; then
+		echo "Unsupported shebang." >&2
+		exit 1
+	fi
+
+	# Assemble final script.
+	run_sh=''
+
+	# Include task file.
+	run_sh+='
 source '"${task_file}"'
 '
 
