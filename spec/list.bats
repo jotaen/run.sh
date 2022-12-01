@@ -45,26 +45,26 @@ list::defaults_to_list_if_no_argument_given() { #@test
 
 list::omit_title_is_not_given() { #@test
 	create run.sh '
-run_noname1() {
+run::noname1() {
 	echo
 }
 
 # This task has a title
-run_first() {
+run::first() {
 	echo
 }
 
-run_noname2() {
+run::noname2() {
 	echo
 }
 
 # Here is a title again
 # There is also a descrition, but that is ignored
-run_second() {
+run::second() {
 	echo
 }
 
-run_noname3() {
+run::noname3() {
 	echo
 }
 '

@@ -6,7 +6,7 @@ load setup.sh
 info::prints_description() { #@test
 	create run.sh '
 # Foo
-run_foo() {
+run::foo() {
 	echo
 }
 '
@@ -48,7 +48,7 @@ info::trims_only_one_leading_space() { #@test
 	create run.sh '
 #  Foo
 #     Test
-run_foo() {
+run::foo() {
 	echo
 }
 '
@@ -62,7 +62,7 @@ run_foo() {
 
 info::fails_if_task_not_found() { #@test
 	create run.sh '
-run_foo() {
+run::foo() {
 	echo
 }
 '
@@ -74,7 +74,7 @@ run_foo() {
 
 info::fails_if_no_task_specified() { #@test
 	create run.sh '
-run_foo() {
+run::foo() {
 	echo
 }
 '

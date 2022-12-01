@@ -5,23 +5,23 @@ load setup.sh
 
 parsing::parses_bash_syntax_variations() { #@test
 	create run.sh '
-run_1() {
+run::1() {
 	echo 1
 }
 
- run_2 (  )
+ run::2 (  )
 {
 	echo 2
 }
 
-run_foo=1 # This is not a function/command
+run::foo=1 # This is not a function/command
 
-function run_3 {
-  run_2
+function run::3 {
+  run::2
 	echo 3
 }
 
-	function	run_4			{
+	function	run::4			{
 	echo 4
 }
 '

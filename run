@@ -30,15 +30,15 @@
 # These variables can be overriden while parsing the flags.
 TASK_FILE='./run.sh'
 IS_VERBOSE='false'
-ACTION=(action_list)
+ACTION=(run::action-list)
 
 # Regex patterns for parsing the task file.
 COMMENT_PATTERN='^#{1,}[[:blank:]]?(.*)$'
-TASK_DEF_PATTERN_1='^[[:blank:]]*run_([a-zA-Z0-9_]+)[[:blank:]]*\([[:blank:]]*\)'
-TASK_DEF_PATTERN_2='^[[:blank:]]*function[[:blank:]]*run_([a-zA-Z0-9_]+)'
+TASK_DEF_PATTERN_1='^[[:blank:]]*run::([a-zA-Z0-9_]+)[[:blank:]]*\([[:blank:]]*\)'
+TASK_DEF_PATTERN_2='^[[:blank:]]*function[[:blank:]]*run::([a-zA-Z0-9_]+)'
 
 # The --help procedure.
-action_help() {
+run::action-help() {
 	echo 'Run tasks from a run.sh file.'
 	echo
 	echo 'Usage: run [OPTION] TASK [TASK_ARGS...]'
@@ -53,13 +53,13 @@ action_help() {
 }
 
 # The --version procedure.
-action_version() {
-	echo 'Version 1'
+run::action-version() {
+	echo 'Version 2.0'
 	echo 'https://run.jotaen.net'
 }
 
 # The --list procedure.
-action_list() {
+run::action-list() {
 	local title_candidate=""
 	local tasks=() # All encountered task names.
 	local titles=() # All encountered titles. (Same arity as $tasks.)
@@ -77,7 +77,7 @@ action_list() {
 		fi
 
 		# After a comment block, there must be the task definition.
-		# Allow both definition styles: `run_foo() {...` and `function run_foo {`.
+		# Allow both definition styles: `foo() {...` and `function foo {`.
 		if [[ "${line}" =~ $TASK_DEF_PATTERN_1 || "${line}" =~ $TASK_DEF_PATTERN_2 ]]; then
 			local task="${BASH_REMATCH[1]}"
 			tasks+=("${task}")
@@ -103,7 +103,7 @@ action_list() {
 }
 
 # The --info procedure.
-action_info() {
+run::action-info() {
 	local requested_task="$1"
 	local comment_block_candidate=() # All comment lines for the task.
 
@@ -135,72 +135,62 @@ action_info() {
 }
 
 # The procedure when invoking a task.
-action_execute() {
-	# Preserve all needed parameters before the cleanup.
-	# The fancy prefix is necessary because these variables
-	# are also visible within the task script.
-	readonly _____run_task_name="$1"
-	readonly _____run_task_identifier="run_${_____run_task_name}"
-	readonly _____run_input=( "${@:2}" )
-	readonly _____run_is_verbose="${IS_VERBOSE}"
-	readonly _____run_task_file="${TASK_FILE}"
+run::action-execute() {
+	readonly task_name="$1"
+	readonly task_identifier="run::${task_name}"
+	readonly input=( "${@:2}" )
+	readonly is_verbose="${IS_VERBOSE}"
+	readonly task_file="${TASK_FILE}"
 
-	# Clean up environment, to not pollute the task file.
-	unset -f action_help
-	unset -f action_info
-	unset -f action_list
-	unset -f action_version
-	unset -f action_execute
-	unset TASK_FILE
-	unset IS_VERBOSE
-	unset ACTION
-	unset COMMENT_PATTERN
-	unset TASK_DEF_PATTERN_1
-	unset TASK_DEF_PATTERN_2
-	set -- # Reset input arguments ($1, $2, ...)
-
-	# Load “run” file with task definitions.
-	# shellcheck source=./run.sh
-	source "${_____run_task_file}"
+	run_sh='
+source '"${task_file}"'
+'
 
 	# Check that subcommand is defined.
-	if [[ "$(type -t "${_____run_task_identifier}")" != 'function' ]]; then
-		echo "No such task: ${_____run_task_name}" >&2
-		exit 1
-	fi
+	# shellcheck disable=SC2016
+	run_sh+='
+if [[ "$(type -t '"${task_identifier}"')" != "function" ]]; then
+	echo "No such task: '"${task_name}"'" >&2
+	exit 1
+fi
+'
 
 	# If requested, activate verbose mode.
-	if "${_____run_is_verbose}"; then
-		set -o xtrace
+	if "${is_verbose}"; then
+		run_sh+='
+set -o xtrace
+'
 	fi
 
-	# Invoke subcommand and pass all additional arguments.
-	"${_____run_task_identifier}" "${_____run_input[@]}"
+	run_sh+='
+'"${task_identifier} ${input[*]}"'
+'
+	bash -c "$run_sh"
 }
 
 # Parse CLI arguments.
 while [[ $# -gt 0 ]]; do
 	case $1 in
 		--help|-h)
-			action_help
+			run::action-help
 			exit
 			;;
 		--version)
-			action_version
+			run::action-version
 			exit
 			;;
 		--list|--ls|-l)
-			ACTION=( action_list )
+			ACTION=( run::action-list )
 			shift
 			continue
 			;;
 		--info=*|-i=*)
-			ACTION=( action_info "${1#*=}" )
+			ACTION=( run::action-info "${1#*=}" )
 			shift
 			continue
 			;;
 		--info|-i)
-			ACTION=( action_info "$2" )
+			ACTION=( run::action-info "$2" )
 			shift
 			shift
 			continue
@@ -226,7 +216,7 @@ while [[ $# -gt 0 ]]; do
 			exit 1
 			;;
 		*)
-			ACTION=( action_execute "$1" "${@:2}" )
+			ACTION=( run::action-execute "$1" "${@:2}" )
 			break
 			;;
 	esac

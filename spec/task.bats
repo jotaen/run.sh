@@ -13,15 +13,15 @@ task::fails_if_task_does_not_exist() { #@test
 
 task::disregards_invalid_names() { #@test
 	create run.sh '
-run_foo:bar() {
+run::foo:bar() {
 	echo
 }
 
-run_foo-bar() {
+run::foo-bar() {
 	echo
 }
 
-run_%!&@() {
+run::%!&@() {
 	echo
 }
 '
