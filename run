@@ -33,8 +33,8 @@ ACTION=(run::action-list)
 
 # Regex patterns for parsing the task file.
 COMMENT_PATTERN='^#{1,}[[:blank:]]?(.*)$'
-TASK_DEF_PATTERN_1='^[[:blank:]]*run::([a-zA-Z0-9_]+)[[:blank:]]*\([[:blank:]]*\)'
-TASK_DEF_PATTERN_2='^[[:blank:]]*function[[:blank:]]*run::([a-zA-Z0-9_]+)'
+TASK_DEF_PATTERN_1='^[[:blank:]]*run::([a-zA-Z0-9_-]+)[[:blank:]]*\([[:blank:]]*\)'
+TASK_DEF_PATTERN_2='^[[:blank:]]*function[[:blank:]]*run::([a-zA-Z0-9_-]+)'
 
 # The --help procedure.
 run::action-help() {

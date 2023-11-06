@@ -11,13 +11,38 @@ task::fails_if_task_does_not_exist() { #@test
 	[[ "${output}" == 'No such task: foobar' ]]
 }
 
-task::disregards_invalid_names() { #@test
+task::recognises_valid_task_names() { #@test
 	create run.sh '
-run::foo:bar() {
+run::foo() {
+	echo
+}
+
+run::foo123() {
 	echo
 }
 
 run::foo-bar() {
+	echo
+}
+
+run::foo_bar() {
+	echo
+}
+'
+
+	EXPECTED_OUTPUT='foo
+foo123
+foo-bar
+foo_bar'
+
+	run main --list
+	[[ "${status}" -eq 0 ]]
+	[[ "${output}" == "${EXPECTED_OUTPUT}" ]]
+}
+
+task::disregards_invalid_task_names() { #@test
+	create run.sh '
+run::foo:bar() {
 	echo
 }
 
