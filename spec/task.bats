@@ -28,29 +28,19 @@ run::foo-bar() {
 run::foo_bar() {
 	echo
 }
+
+run::foo:bar() {
+	echo
+}
 '
 
 	EXPECTED_OUTPUT='foo
 foo123
 foo-bar
-foo_bar'
+foo_bar
+foo:bar'
 
 	run main --list
 	[[ "${status}" -eq 0 ]]
 	[[ "${output}" == "${EXPECTED_OUTPUT}" ]]
-}
-
-task::disregards_invalid_task_names() { #@test
-	create run.sh '
-run::foo:bar() {
-	echo
-}
-
-run::%!&@() {
-	echo
-}
-'
-	run main --list
-	[[ "${status}" -eq 0 ]]
-	[[ "${output}" == '' ]]
 }
