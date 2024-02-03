@@ -33,8 +33,9 @@ ACTION=(run::action-list)
 
 # Regex patterns for parsing the task file.
 COMMENT_PATTERN='^#{1,}[[:blank:]]?(.*)$'
-TASK_DEF_PATTERN_1='^[[:blank:]]*run::([a-zA-Z0-9_-]+)[[:blank:]]*\([[:blank:]]*\)'
-TASK_DEF_PATTERN_2='^[[:blank:]]*function[[:blank:]]*run::([a-zA-Z0-9_-]+)'
+TASK_NAME_PATTERN='[a-zA-Z]+[a-zA-Z0-9:_-]*'
+TASK_DEF_PATTERN_1='^[[:blank:]]*run::('"${TASK_NAME_PATTERN}"')[[:blank:]]*\([[:blank:]]*\)'
+TASK_DEF_PATTERN_2='^[[:blank:]]*function[[:blank:]]*run::('"${TASK_NAME_PATTERN}"')'
 
 # The --help procedure.
 run::action-help() {
@@ -44,9 +45,9 @@ run::action-help() {
 	echo
 	echo 'Options:'
 	echo '  -f, --file       Specify the task file (default: ./run.sh)'
-	echo '  -h, --help       Print this help'
 	echo '  -i, --info task  Show task description'
 	echo '  -l, --list       List all available tasks'
+	echo '  -h, --help       Print this help'
 	echo '      --version    Print version of this command'
 }
 

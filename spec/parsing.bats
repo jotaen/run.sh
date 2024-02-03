@@ -5,44 +5,72 @@ load setup.sh
 
 parsing::parses_bash_syntax_variations() { #@test
 	create run.sh '
-run::1() {
-	echo 1
+run::a() {
+	echo a
 }
 
- run::2 (  )
+ run::b (  )
 {
-	echo 2
+	echo b
 }
 
-run::foo=1 # This is not a function/command
+# This is not a function/command
+run::foo=1
 
-function run::3 {
-  run::2
-	echo 3
+function run::c {
+  run::b
+	echo c
 }
 
-	function	run::4			{
-	echo 4
+	function	run::d			{
+	echo d
 }
 '
-	EXPECTED_OUTPUT='1
-2
-3
-4'
+	EXPECTED_OUTPUT='a
+b
+c
+d'
 
 	run main --list
 	[[ "${status}" -eq 0 ]]
 	[[ "${output}" == "${EXPECTED_OUTPUT}" ]]
 
-	run main --info 1
+	run main --info a
 	[[ "${status}" -eq 0 ]]
 
-	run main --info 2
+	run main --info b
 	[[ "${status}" -eq 0 ]]
 
-	run main --info 3
+	run main --info c
 	[[ "${status}" -eq 0 ]]
 
-	run main --info 4
+	run main --info d
 	[[ "${status}" -eq 0 ]]
+}
+
+parsing::disregards_invalid_task_names() { #@test
+	create run.sh '
+run::%foo() {
+	echo
+}
+
+run::1foo() {
+	echo
+}
+
+run::-asdf() {
+	echo
+}
+
+run::--asdf() {
+	echo
+}
+
+run:::asdf() {
+	echo
+}
+'
+	run main --list
+	[[ "${status}" -eq 0 ]]
+	[[ "${output}" == '' ]]
 }
